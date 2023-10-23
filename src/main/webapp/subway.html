@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JSON TEST</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+        //var UrlInfo = "http://34.82.11.135:8000"; //GCP기준
+        var UrlInfo = "http://localhost:8080"; //Local Tomcat 기준
+
+        function request4() {
+            let inputText = $("#stnName").val();
+            document.subway.hidStnName.value = inputText;
+            //var param = $("#subway").serialize();
+
+            $.ajax({
+                url: UrlInfo + "/subway/find",
+                type: "POST",
+                data : ({"stnText" : inputText }),
+                //data : param,
+                dataType : "JSON",
+
+                success: function (data) {
+                    let subwayDTOList = data.subwayDTOList;
+                    let lineDTOList = data.lineDTOList;
+
+                    let subwayInfo = "";
+                    let lineInfo = "";
+
+                    for(var i=0; i< lineDTOList.length; i++) {
+                        lineInfo += " | <a href='javascript:void(0);' onClick=\"request5('" + lineDTOList[i].lineNumber + "');\">" + lineDTOList[i].lineName + "</a>" ;
+                    }
+                    for(var i=0; i< subwayDTOList.length; i++) {
+                        subwayInfo += subwayDTOList[i].trainLineNm + ", " + subwayDTOList[i].arvlMsg3 + ", " + subwayDTOList[i].arvlMsg2 + ", " + subwayDTOList[i].barvlDt + "초후 도착<br>";
+                    }
+                    result4.innerHTML = lineInfo;
+                    result5.innerHTML = subwayInfo;
+                },
+                error: function () {
+                    alert("request error!");
+                }
+            });
+        }
+
+        function request5(lineNo) {
+            let subwayId = lineNo;
+            let inputText = document.subway.hidStnName.value;
+            let result = "";
+
+            $.ajax({
+                url: UrlInfo + "/subway/findDetail",
+                type: "POST",
+                data : ({"stnText" : inputText, "subwayId" : subwayId }),
+                dataType : "JSON",
+
+                success: function (data) {
+                    $(data).each(function () {
+                        result += this.trainLineNm + ", " + this.arvlMsg3 + ", " + this.arvlMsg2 + ", " + this.barvlDt + "초후 도착<br>";
+                    });
+                    result5.innerHTML = result;
+                },
+                error: function () {
+                    alert("request error!");
+                }
+            });
+        }
+
+    </script>
+
+</head>
+<body>
+
+역명 검색
+<form name="subway" method="post">
+    <input type="text" id="stnName"> <input type="button"  onclick="request4()" value="검색">
+    <input type="hidden" id="hidStnName">
+</form>
+<p id="result4"></p><br><br>
+<p id="result5"></p><br><br>
+</body>
+</html>
